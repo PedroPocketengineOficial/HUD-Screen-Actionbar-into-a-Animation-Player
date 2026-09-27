@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>HUD Screen Image Builder — Bedrock</title>
+<style>
+:root{
+  --bg:#11151b;--panel:#191f27;--panel2:#202733;--line:#303946;
+  --text:#f3f5f7;--muted:#9ca7b5;--accent:#5aa7ff;--danger:#ff5f67;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:#252d38;color:var(--text);border-radius:8px;padding:9px 12px}
+button:hover{background:#303a48}
+button.primary{background:var(--accent);border-color:var(--accent);color:#07111d;font-weight:700}
+button.danger{background:#381d22;border-color:#6b2b33;color:#ff9da3}
+.app{display:grid;grid-template-columns:330px 1fr 390px;height:100vh;overflow:hidden}
+header{position:fixed;left:0;right:0;top:0;height:58px;z-index:20;background:#0c1015;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:8px 14px}
+header h1{font-size:17px;margin:0 12px 0 0}
+header .spacer{flex:1}
+.side{padding:72px 12px 15px;overflow:auto;background:var(--panel);border-right:1px solid var(--line)}
+.right{border-right:0;border-left:1px solid var(--line)}
+h2{font-size:14px;margin:8px 4px 10px;color:#dfe6ef}
+h3{font-size:12px;color:#c5cfdb;margin:15px 0 8px}
+label{display:block;font-size:12px;color:var(--muted);margin:9px 0 5px}
+input,select{width:100%;background:#0f141a;border:1px solid var(--line);color:var(--text);border-radius:7px;padding:8px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.check{display:flex;align-items:center;gap:8px;margin:10px 0;color:var(--text);font-size:12px}
+.check input{width:auto}
+.list{display:flex;flex-direction:column;gap:7px}
+.item{display:flex;gap:8px;align-items:center;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:8px}
+.item.active{border-color:var(--accent)}
+.thumb{width:46px;height:46px;background:#0c1015;border-radius:5px;object-fit:contain}
+.item .name{flex:1;min-width:0}
+.item .name b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .name small{color:var(--muted);font-size:10px}
+.empty{padding:20px 8px;color:var(--muted);text-align:center;font-size:12px;border:1px dashed var(--line);border-radius:8px}
+.stageWrap{padding:75px 15px 15px;overflow:auto}
+.stageTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.stageTop span{color:var(--muted);font-size:12px}
+.stage{
+  position:relative;margin:auto;width:min(900px,100%);height:min(650px,calc(100vh - 125px));
+  min-height:400px;background-color:#101820;
+  background-image:linear-gradient(#25313e 1px,transparent 1px),linear-gradient(90deg,#25313e 1px,transparent 1px);
+  background-size:25px 25px;border:1px solid #3b4654;border-radius:10px;overflow:hidden;
+}
+.stage.fullscreenPreview{width:100vw;height:calc(100vh - 90px);border-radius:0}
+.stage .safe{position:absolute;inset:5%;border:1px dashed #566272;pointer-events:none}
+.hudimg{position:absolute;object-fit:fill;user-select:none;pointer-events:none}
+.cross{position:absolute;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);pointer-events:none}
+.cross:before,.cross:after{content:"";position:absolute;background:#758394}
+.cross:before{left:8px;top:0;width:2px;height:18px}.cross:after{left:0;top:8px;width:18px;height:2px}
+pre{margin:0;background:#0a0e13;border:1px solid var(--line);border-radius:8px;padding:10px;overflow:auto;white-space:pre;font-size:11px;line-height:1.45;max-height:48vh}
+.codeTabs{display:flex;gap:6px;margin:7px 0}
+.codeTabs button.active{background:var(--accent);color:#07111d}
+.note{font-size:11px;color:var(--muted);line-height:1.45}
+.drop{border:1px dashed #536274;border-radius:8px;padding:14px;text-align:center;color:var(--muted);font-size:12px;margin-bottom:10px}
+.drop.drag{border-color:var(--accent);background:#17283b}
+.smallbtn{padding:5px 8px;font-size:11px}
+.sequenceBox{background:#151b23;border:1px solid var(--line);border-radius:9px;padding:10px;margin-bottom:10px}
+.sequenceBox .row{align-items:end}
+.importBtns{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.path{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#7f8b9a;font-size:9px;margin-top:2px}
+</style>
+</head>
+<body>
+<header>
+  <h1>HUD Screen Image Builder</h1>
+  <button id="addBtn" class="primary">＋ Adicionar imagem</button>
+  <button id="multiBtn">＋ Várias imagens</button>
+  <button id="folderBtn">📁 Importar pasta</button>
+  <button id="exportAll">⬇ Exportar tudo</button>
+  <input id="singleInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+  <input id="multiInput" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
+  <input id="folderInput" type="file" accept="image/png,image/jpeg,image/webp" webkitdirectory directory multiple hidden>
+  <button id="fullscreenBtn">⛶ Tela cheia</button>
+  <div class="spacer"></div>
+  <span style="font-size:11px;color:#8e99a7">Minecraft Bedrock • ActionBar</span>
+</header>
+
+<div class="app">
+  <aside class="side">
+    <h2>Imagens / elementos</h2>
+    <div class="sequenceBox">
+      <b style="font-size:12px">📚 Importação em sequência</b>
+      <div class="note" style="margin-top:4px">Escolha um nome e importe várias imagens ou uma pasta inteira. Subpastas são preservadas no caminho da textura.</div>
+      <label>Nome da sequência</label>
+      <input id="sequenceName" value="gde_sequence" placeholder="ex.: catnap_idle">
+      <div class="row" style="margin-top:8px">
+        <div><label>Começar em</label><input id="sequenceStart" type="number" min="1" value="1"></div>
+        <div><label>Dígitos</label><select id="sequenceDigits"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></div>
+      </div>
+      <h3 style="margin-top:12px">⚙️ Padrão antes de importar</h3>
+      <div class="row">
+        <div>
+          <label>Modo da imagem</label>
+          <select id="importFit">
+            <option value="fill" selected>Fill</option>
+            <option value="contain">Contain</option>
+            <option value="cover">Cover</option>
+          </select>
+        </div>
+        <div>
+          <label>Tela inteira</label>
+          <select id="importFullscreen">
+            <option value="off" selected>Off</option>
+            <option value="on">On</option>
+          </select>
+        </div>
+      </div>
+      <div class="note" style="margin-top:6px">Essas opções serão aplicadas automaticamente a todas as imagens importadas, inclusive imagens de sequência e subpastas. Depois você ainda pode alterar cada imagem no Editor.</div>
+      <div class="importBtns"><button id="sideMultiBtn">＋ Várias</button><button id="sideFolderBtn">📁 Pasta + subpastas</button></div>
+    </div>
+    <div id="drop" class="drop">Arraste PNG/JPG/WebP aqui ou solte uma pasta pelo seletor. As imagens entram na sequência automaticamente.</div>
+    <div id="list" class="list"></div>
+  </aside>
+
+  <main class="stageWrap">
+    <div class="stageTop">
+      <span>Pré-visualização proporcional — a grade é apenas uma referência.</span>
+      <label style="margin:0;width:130px"><select id="bgMode"><option value="grid">Grade</option><option value="dark">Fundo escuro</option><option value="transparent">Transparente</option></select></label>
+    </div>
+    <div id="stage" class="stage">
+      <div class="safe"></div><div class="cross"></div>
+    </div>
+  </main>
+
+  <aside class="side right">
+    <h2>Propriedades</h2>
+    <div id="props" class="note">Selecione uma imagem.</div>
+
+    <h3>ActionBar / condição</h3>
+    <label>Texto que ativa esta imagem</label>
+    <input id="actionText" placeholder="ex.: gde_test1">
+    <label>Seletor do comando (para referência)</label>
+    <input id="selector" value="@a">
+    <div class="note" style="margin-top:6px">Exemplo: <b>/title @a actionbar gde_test1</b>. O seletor é o alvo do comando; a condição usa o texto do ActionBar.</div>
+
+    <h3>Exportação</h3>
+    <label>Namespace/prefixo</label>
+    <input id="prefix" value="gde_actionbar">
+    <label>Nome do wrapper</label>
+    <input id="wrapperName" value="gde_actionbar_wrapper">
+    <label>Nome do factory</label>
+    <input id="factoryName" value="hud_actionbar_text_factory">
+
+    <div class="row" style="margin-top:10px">
+      <button id="downloadHud">Baixar hud_screen.json</button>
+      <button id="downloadUi">Baixar _ui_defs.json</button>
+    </div>
+    <button id="downloadReadme" style="width:100%;margin-top:7px">Baixar README.txt</button>
+
+    <h3>JSON gerado</h3>
+    <div class="codeTabs">
+      <button class="smallbtn active" data-tab="hud">hud_screen</button>
+      <button class="smallbtn" data-tab="ui">_ui_defs</button>
+    </div>
+    <pre id="code"></pre>
+  </aside>
+</div>
+
+<script>
+const state = {
+  images: [],
+  selected: null,
+  bg: "grid",
+  prefix: "gde_actionbar",
+  wrapperName: "gde_actionbar_wrapper",
+  factoryName: "hud_actionbar_text_factory",
+  selector: "@a",
+  sequenceName: "gde_sequence",
+  sequenceStart: 1,
+  sequenceDigits: 3,
+  importFit: "fill",
+  importFullscreen: false
+};
+
+const $ = id => document.getElementById(id);
+const uid = () => Math.random().toString(36).slice(2,8);
+const esc = s => String(s ?? "");
+const safeId = s => String(s).replace(/[^a-zA-Z0-9_]/g,"_").replace(/^(\d)/,"_$1") || "image";
+
+function makeSequenceNumber(n){
+  return String(n).padStart(Math.max(1,Number(state.sequenceDigits)||3),"0");
+}
+function nextSequenceNumber(){
+  const nums=state.images.map(x=>Number(x.sequenceNumber)||0);
+  return Math.max(Number(state.sequenceStart)||1,...nums.map(n=>n+1));
+}
+function makeTexturePath(file){
+  const rel=(file?.webkitRelativePath||file?.name||"").replace(/\\/g,"/");
+  const parts=rel.split("/");
+  const base=parts.pop()||"image.png";
+  const noExt=base.replace(/\.[^.]+$/,""), folder=parts.join("/");
+  return "textures/ui/"+(folder?folder+"/":"")+noExt;
+}
+function createItem(file, sequenceNumber){
+  const name=file?.name||("image_"+(state.images.length+1)+".png");
+  const seq=String(state.sequenceName||"gde_sequence").trim().replace(/[^a-zA-Z0-9_-]/g,"_")||"gde_sequence";
+  const num=sequenceNumber||nextSequenceNumber();
+  const base=name.replace(/\.[^.]+$/i,"");
+  return {
+    id:uid(), name:base, fileName:name, relativePath:(file?.webkitRelativePath||name).replace(/\\/g,"/"),
+    data:file?null:"", texture:makeTexturePath(file)||("textures/ui/"+base),
+    width:128,height:128,x:0,y:0,anchorFrom:"center",anchorTo:"center",layer:999999,
+    actionText:seq+"_"+makeSequenceNumber(num), visible:true,fullscreen:!!state.importFullscreen,
+    fit:state.importFit||"fill",alpha:1,anim:true,sequence:seq,sequenceNumber:num
+  };
+}
+function addImage(file, sequenceNumber){
+  const item=createItem(file,sequenceNumber);
+  if(file){
+    const reader=new FileReader();
+    reader.onload=e=>{item.data=e.target.result;state.images.push(item);state.selected=item.id;render();};
+    reader.readAsDataURL(file);
+  }else{state.images.push(item);state.selected=item.id;render();}
+}
+function readFileAsDataURL(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function addFiles(fileList){
+  const files=[...fileList].filter(f=>f && f.type && f.type.startsWith("image/"));
+  if(!files.length)return;
+  const start=Math.max(Number(state.sequenceStart)||1,nextSequenceNumber());
+  for(let i=0;i<files.length;i++){
+    const file=files[i];
+    const item=createItem(file,start+i);
+    try{ item.data=await readFileAsDataURL(file); }catch(e){ continue; }
+    state.images.push(item);
+    state.selected=item.id;
+  }
+  render();
+}
+function openImagePicker(mode){
+  let input;
+  if(mode==="single") input=$("singleInput");
+  else if(mode==="multi") input=$("multiInput");
+  else input=$("folderInput");
+  if(!input)return;
+  input.value="";
+  input.onchange=()=>{ const files=input.files; if(files && files.length) addFiles(files); };
+  input.click();
+}
+
+// Importação: cada botão usa seu próprio seletor de arquivos.
+$("addBtn").onclick=()=>openImagePicker("single");
+$("multiBtn").onclick=()=>openImagePicker("multi");
+$("folderBtn").onclick=()=>openImagePicker("folder");
+$("sideMultiBtn").onclick=()=>openImagePicker("multi");
+$("sideFolderBtn").onclick=()=>openImagePicker("folder");
+
+function current(){return state.images.find(x=>x.id===state.selected)}
+
+function renderList(){
+  $("list").innerHTML="";
+  if(!state.images.length){$("list").innerHTML='<div class="empty">Nenhuma imagem adicionada.</div>';return}
+  state.images.forEach(im=>{
+    const el=document.createElement("div");el.className="item"+(im.id===state.selected?" active":"");
+    el.innerHTML=`<img class="thumb" src="${im.data||''}" alt=""><div class="name"><b>${esc(im.name)}</b><small>${esc(im.sequence)} #${esc(im.sequenceNumber)} • ${im.width}×${im.height}</small><span class="path">${esc(im.relativePath||im.fileName)}</span></div><button class="smallbtn danger">×</button>`;
+    el.onclick=e=>{if(e.target.tagName==="BUTTON")return;state.selected=im.id;render()};
+    el.querySelector("button").onclick=e=>{e.stopPropagation();state.images=state.images.filter(x=>x.id!==im.id);if(state.selected===im.id)state.selected=state.images[0]?.id||null;render()};
+    $("list").appendChild(el);
+  });
+}
+
+function inputField(label,key,type="text"){
+  const im=current();
+  return `<label>${label}</label><input data-key="${key}" type="${type}" value="${esc(im[key])}">`;
+}
+function selectField(label,key,opts){
+  const im=current();
+  return `<label>${label}</label><select data-key="${key}">${opts.map(o=>`<option value="${o[0]}" ${im[key]===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>`;
+}
+
+function renderProps(){
+  const im=current();
+  if(!im){$("props").innerHTML="Selecione uma imagem.";return}
+  $("props").innerHTML=`
+    ${inputField("Nome do controle","name")}
+    ${inputField("Caminho da textura","texture")}
+    <div class="row">${inputField("Sequência","sequence")}${inputField("Número","sequenceNumber","number")}</div>
+    ${inputField("ActionBar que ativa a imagem","actionText")}
+    <div class="row">${inputField("Largura","width","number")}${inputField("Altura","height","number")}</div>
+    <div class="row">${inputField("Posição X","x","number")}${inputField("Posição Y","y","number")}</div>
+    ${selectField("Anchor From","anchorFrom",[["center","center"],["top_left","top_left"],["top_middle","top_middle"],["top_right","top_right"],["left_middle","left_middle"],["right_middle","right_middle"],["bottom_left","bottom_left"],["bottom_middle","bottom_middle"],["bottom_right","bottom_right"]])}
+    ${selectField("Anchor To","anchorTo",[["center","center"],["top_left","top_left"],["top_middle","top_middle"],["top_right","top_right"],["left_middle","left_middle"],["right_middle","right_middle"],["bottom_left","bottom_left"],["bottom_middle","bottom_middle"],["bottom_right","bottom_right"]])}
+    <div class="row">${inputField("Layer","layer","number")}${inputField("Alpha","alpha","number")}</div>
+    ${selectField("Modo da imagem","fit",[["fill","fill"],["contain","contain"],["cover","cover"]])}
+    <label class="check"><input data-key="fullscreen" type="checkbox" ${im.fullscreen?"checked":""}> Forçar tamanho de tela inteira</label>
+    <label class="check"><input data-key="anim" type="checkbox" ${im.anim?"checked":""}> Usar animação de ocultação</label>
+    <label class="check"><input data-key="visible" type="checkbox" ${im.visible?"checked":""}> Elemento ativo</label>
+    <div class="note">Dica: X/Y são offsets em pixels em relação às âncoras. Para uma imagem centralizada, use center → center e X/Y = 0.</div>
+  `;
+  $("props").querySelectorAll("[data-key]").forEach(el=>{
+    el.addEventListener("input",()=>{
+      const key=el.dataset.key;
+      im[key]=el.type==="checkbox"?el.checked:(el.type==="number"?Number(el.value):el.value);
+      render(false);
+    });
+  });
+}
+
+function renderStage(){
+  const stage=$("stage");
+  stage.querySelectorAll(".hudimg").forEach(e=>e.remove());
+  state.images.forEach(im=>{
+    if(!im.data || !im.visible)return;
+    const el=document.createElement("img");
+    el.className="hudimg";el.src=im.data;el.alt="";
+    el.style.width=(im.fullscreen?"100%":im.width+"px");
+    el.style.height=(im.fullscreen?"100%":im.height+"px");
+    el.style.opacity=im.alpha;
+    el.style.zIndex=im.layer;
+    el.style.objectFit=im.fit;
+    el.style.left=`calc(50% + ${im.x}px)`;
+    el.style.top=`calc(50% + ${im.y}px)`;
+    el.style.transform="translate(-50%,-50%)";
+    stage.appendChild(el);
+  });
+  stage.style.backgroundImage=state.bg==="grid"?"linear-gradient(#25313e 1px,transparent 1px),linear-gradient(90deg,#25313e 1px,transparent 1px)": "none";
+  stage.style.backgroundColor=state.bg==="transparent"?"transparent":"#101820";
+  if(state.bg==="dark") stage.style.backgroundColor="#080b0f";
+}
+
+function buildHud(){
+  const p=safeId(state.prefix);
+  const controls={};
+  const wrapper=[];
+  const used=new Set();
+  const uniqueText=im=> {
+    let t=String(im.actionText||im.name||"").replace(/'/g,"\\'");
+    return t;
+  };
+  state.images.forEach((im,i)=>{
+    let id=safeId(p+"_"+im.name);
+    if(used.has(id)) id += "_"+(i+1);
+    used.add(id);
+    const obj={
+      type:"image",
+      texture:im.texture,
+      size:[Number(im.width)||0,Number(im.height)||0],
+      anchor_from:im.anchorFrom,
+      anchor_to:im.anchorTo,
+      offset:[Number(im.x)||0,Number(im.y)||0],
+      layer:Number(im.layer)||0,
+      "$gde_actionbar_text":"$actionbar_text",
+      visible:`($gde_actionbar_text = '${uniqueText(im)}')`
+    };
+    if(im.fullscreen)obj.size=["100%","100%"];
+    if(im.anim)obj.anims=["@hud."+p+"_hide_wait"];
+    controls[id]=obj;
+    wrapper.push({[safeId(im.name)+"@hud."+id]:{}});
+  });
+  controls[state.wrapperName]={
+    type:"panel",
+    controls:wrapper
+  };
+  controls[state.factoryName]={
+    type:"panel",
+    factory:{
+      name:state.factoryName,
+      control_ids:{
+        hud_actionbar_text:state.wrapperName+"@hud."+state.wrapperName
+      }
+    }
+  };
+  controls.root_panel={
+    modifications:[{
+      array_name:"controls",
+      operation:"insert_front",
+      value:[{[state.factoryName+"@hud."+state.factoryName]:{}}]
+    }]
+  };
+  if(state.images.some(x=>x.anim)){
+    controls[p+"_hide_wait"]={anim_type:"wait",duration:3.0,next:"hud."+p+"_hide"};
+    controls[p+"_hide"]={anim_type:"alpha",from:1.0,to:0.0,duration:0.1};
+  }
+  return controls;
+}
+
+function buildUiDefs(){
+  return {
+    "ui_defs":[
+      "ui/hud_screen.json"
+    ]
+  };
+}
+
+let tab="hud";
+function updateCode(){
+  $("code").textContent=JSON.stringify(tab==="hud"?buildHud():buildUiDefs(),null,4);
+}
+function render(all=true){
+  renderList();renderProps();renderStage();updateCode();
+}
+document.querySelectorAll(".codeTabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll(".codeTabs button").forEach(x=>x.classList.toggle("active",x===b));updateCode()});
+$("bgMode").onchange=e=>{state.bg=e.target.value;renderStage()};
+$("actionText").oninput=e=>{const im=current();if(im){im.actionText=e.target.value;render()}};
+$("selector").oninput=e=>state.selector=e.target.value;
+$("sequenceName").oninput=e=>{state.sequenceName=e.target.value;};
+$("sequenceStart").oninput=e=>{state.sequenceStart=Number(e.target.value)||1;};
+$("sequenceDigits").onchange=e=>{state.sequenceDigits=Number(e.target.value)||3;};
+$("importFit").onchange=e=>{state.importFit=e.target.value||"fill";};
+$("importFullscreen").onchange=e=>{state.importFullscreen=e.target.value==="on";};
+$("prefix").oninput=e=>{state.prefix=e.target.value;updateCode()};
+$("wrapperName").oninput=e=>{state.wrapperName=safeId(e.target.value);updateCode()};
+$("factoryName").oninput=e=>{state.factoryName=safeId(e.target.value);updateCode()};
+$("exportAll").onclick=()=>{download("hud_screen.json",JSON.stringify(buildHud(),null,4));setTimeout(()=>download("_ui_defs.json",JSON.stringify(buildUiDefs(),null,4)),150);};
+
+function download(name,text){
+  const blob=new Blob([text],{type:"application/json;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),500);
+}
+$("downloadHud").onclick=()=>download("hud_screen.json",JSON.stringify(buildHud(),null,4));
+$("downloadUi").onclick=()=>download("_ui_defs.json",JSON.stringify(buildUiDefs(),null,4));
+$("downloadReadme").onclick=()=>{
+  const lines=[
+    "HUD SCREEN IMAGE BUILDER",
+    "",
+    "Comando de exemplo:",
+    `/title ${state.selector} actionbar ${current()?.actionText||"gde_test1"}`,
+    "",
+    "Texturas usadas:",
+    ...state.images.map(x=>"- "+x.texture),
+    "",
+    "IMPORTANTE:",
+    "Copie as texturas para o resource pack no caminho correspondente.",
+    "Os JSONs gerados usam o sistema de condition visible baseado em $actionbar_text.",
+    "A sintaxe final pode depender da versão/UI usada pelo seu resource pack."
+  ];
+  const blob=new Blob([lines.join("\\n")],{type:"text/plain;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="README.txt";a.click();
+};
+$("fullscreenBtn").onclick=async()=>{
+  const stage=$("stage");
+  if(!document.fullscreenElement) await stage.requestFullscreen?.();
+  else await document.exitFullscreen?.();
+};
+
+addImage(null,1);
+state.images[0].name="001";state.images[0].fileName="001.png";state.images[0].relativePath="001.png";state.images[0].texture="textures/ui/001";state.images[0].sequence="gde_sequence";state.images[0].sequenceNumber=1;state.images[0].actionText="gde_sequence_001";
+render();
+</script>
+</body>
+</html>
