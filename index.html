@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HUD ActionBar Animation Player — Bedrock</title>
+<style>
+:root{--bg:#10141a;--panel:#181e27;--panel2:#202834;--line:#303b49;--text:#f4f7fb;--muted:#9ca8b7;--accent:#5aa7ff;--good:#58d68d;--danger:#ff626d}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}button,input,select,textarea{font:inherit}button{border:1px solid var(--line);background:#252e3a;color:var(--text);border-radius:9px;padding:10px 13px;cursor:pointer}button:hover{background:#303b49}button.primary{background:var(--accent);border-color:var(--accent);color:#07111c;font-weight:800}.danger{border-color:#713039;background:#351c22;color:#ffb0b5}.app{min-height:100vh;padding-bottom:20px}header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:11px 15px;background:#0b0f14;border-bottom:1px solid var(--line)}header h1{font-size:17px;margin:0}.spacer{flex:1}.badge{font-size:11px;color:#b9c5d3;padding:5px 8px;border:1px solid var(--line);border-radius:999px}.layout{display:grid;grid-template-columns:330px minmax(0,1fr) 390px;gap:0;min-height:calc(100vh - 62px)}aside,main{min-width:0}.panel{padding:18px 14px;border-right:1px solid var(--line);background:var(--panel)}.panel.right{border-right:0;border-left:1px solid var(--line)}h2{font-size:14px;margin:2px 0 12px}h3{font-size:12px;color:#d4deea;margin:17px 0 8px}label{display:block;color:var(--muted);font-size:12px;margin:9px 0 5px}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:#0e1319;color:var(--text);padding:9px}textarea{min-height:220px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.drop{border:1px dashed #526173;border-radius:10px;padding:16px;text-align:center;color:var(--muted);line-height:1.45}.drop.drag{border-color:var(--accent);background:#15263a}.stack{display:flex;flex-direction:column;gap:8px}.list{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:48vh;overflow:auto}.frame{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--line);background:var(--panel2);border-radius:8px}.frame b{font-size:12px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.frame small{font-size:10px;color:var(--muted)}.stageWrap{padding:18px}.stage{min-height:420px;border:1px solid #3a4655;border-radius:12px;background:#0d141b;display:flex;align-items:center;justify-content:center;overflow:hidden}.stageInner{position:relative;width:min(800px,95%);height:min(600px,70vh);background-image:linear-gradient(#26313d 1px,transparent 1px),linear-gradient(90deg,#26313d 1px,transparent 1px);background-size:25px 25px;border:1px solid #303b49;border-radius:9px;overflow:hidden}.previewFrame{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}.previewFrame img{max-width:100%;max-height:100%;object-fit:contain}.centerText{text-align:center;color:var(--muted);font-size:13px;padding:20px}.code{background:#090d12;border:1px solid var(--line);border-radius:9px;padding:12px;max-height:56vh;overflow:auto;white-space:pre-wrap;word-break:break-word;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}.tabs{display:flex;gap:6px;margin-bottom:8px}.tabs button.active{background:var(--accent);color:#07111c}.hint{font-size:11px;color:var(--muted);line-height:1.45}.status{font-size:11px;padding:8px 10px;border-radius:8px;background:#121922;border:1px solid var(--line);color:#cbd6e2}.status.good{border-color:#285f45;color:#9be5b9}.status.bad{border-color:#713039;color:#ffadb2}.check{display:flex;align-items:center;gap:8px;color:var(--text);font-size:12px}.check input{width:auto}.pill{display:inline-block;font-size:10px;padding:3px 6px;border-radius:999px;background:#283545;color:#c9d6e4}.mobileTabs{display:none}
+@media(max-width:1050px){.layout{grid-template-columns:290px minmax(0,1fr)}.panel.right{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
+@media(max-width:800px){header{padding:9px 10px}header h1{font-size:15px}.badge{display:none}.mobileTabs{display:grid;grid-template-columns:repeat(3,1fr);position:sticky;top:58px;z-index:19;background:#0c1015;border-bottom:1px solid var(--line)}.mobileTabs button{border:0;border-radius:0;background:#141a22}.mobileTabs button.active{background:#273649;color:#fff}.layout{display:block;min-height:0}.panel,.panel.right,.stageWrap{display:none;border:0}.panel.mobileActive,.panel.right.mobileActive,.stageWrap.mobileActive{display:block}.panel{min-height:calc(100vh - 105px);max-height:calc(100vh - 105px);overflow:auto}.stageWrap{padding:10px;min-height:calc(100vh - 105px)}.stage{min-height:calc(100vh - 135px)}.stageInner{width:100%;height:calc(100vh - 165px);min-height:350px}.panel.right{max-height:calc(100vh - 105px);overflow:auto}.code{max-height:40vh}input,select,button{min-height:42px}textarea{min-height:180px}}
+@media(max-width:430px){.row,.row3{grid-template-columns:1fr}.stageInner{min-height:300px}}
+</style>
+</head>
+<body>
+<header>
+<h1>🎞️ HUD ActionBar Animation Player</h1>
+<button id="newBtn" class="primary">＋ Nova animação</button>
+<button id="exportBtn">⬇ Exportar JS</button>
+<div class="spacer"></div><span class="badge">@minecraft/server 2.10.0</span>
+</header>
+<nav class="mobileTabs"><button data-panel="import" class="active">📥 Entrada</button><button data-panel="preview">👁️ Preview</button><button data-panel="code">💻 Script</button></nav>
+<div class="layout">
+<aside id="importPanel" class="panel mobileActive">
+<h2>📥 Entrada / TexturePacker style</h2>
+<div id="drop" class="drop">Cole o <b>hud_screen.json</b> abaixo ou importe um arquivo grande.<br><br>Também dá para importar vários JSONs de uma vez.</div>
+<div class="stack" style="margin-top:9px">
+<button id="fileBtn" class="primary">📄 Importar hud_screen.json</button>
+<button id="multiBtn">📚 Importar vários JSONs</button>
+</div>
+<label>Colar JSON do hud_screen</label>
+<textarea id="jsonInput" placeholder='Cole aqui o conteúdo do hud_screen.json...'></textarea>
+<button id="parseBtn" class="primary" style="width:100%;margin-top:7px">🔄 Converter JSON colado</button>
+<div id="status" class="status" style="margin-top:8px">Nenhum JSON carregado.</div>
+<h3>Frames encontrados</h3><div id="frameList" class="list"></div>
+<input id="fileInput" type="file" accept=".json,application/json" hidden>
+<input id="multiInput" type="file" accept=".json,application/json" multiple hidden>
+</aside>
+<main id="previewPanel" class="stageWrap mobileActive">
+<div class="row" style="margin-bottom:10px"><div><b>Preview da animação</b><div class="hint">Cada frame é representado pelo texto ActionBar que ativa a imagem no seu HUD.</div></div><div><label style="margin:0">Frame <select id="previewFrame"></select></label></div></div>
+<div class="stage"><div class="stageInner"><div id="preview" class="previewFrame"><div class="centerText">Importe um hud_screen.json para visualizar os frames.</div></div></div></div>
+</main>
+<aside id="codePanel" class="panel right">
+<h2>⚙️ Configuração do Animation Player</h2>
+<label>Seletor do comando</label><input id="selector" value="@a" placeholder="@a">
+<label>Ticks por frame</label><input id="ticks" type="number" min="1" step="1" value="3">
+<div class="row"><div><label>Modo</label><select id="mode"><option value="loop">Loop infinito</option><option value="once">Executar uma vez</option><option value="count">Repetir N vezes</option></select></div><div><label>Repetições</label><input id="repeats" type="number" min="1" value="1"></div></div>
+<label>Nome da animação</label><input id="animName" value="hudActionbarAnimation">
+<label>Script Event para iniciar</label><input id="eventStart" value="hud_anim:play">
+<label>Script Event para parar</label><input id="eventStop" value="hud_anim:stop">
+<label class="check"><input id="autoStart" type="checkbox"> Iniciar automaticamente ao carregar o script</label>
+<h3>Comando equivalente</h3><div id="commandPreview" class="status">/title @a actionbar exemplo</div>
+<h3>Script gerado</h3>
+<div class="tabs"><button class="active" data-tab="js">JavaScript</button><button data-tab="manifest">manifest.json</button><button data-tab="commands">Comandos</button></div>
+<pre id="code" class="code"></pre>
+<div class="row" style="margin-top:8px"><button id="copyBtn" class="primary">📋 Copiar script</button><button id="downloadScript">⬇ Baixar script .js</button></div><button id="downloadManifest" style="width:100%;margin-top:7px">⬇ Baixar manifest.json</button><div id="scriptSize" class="hint" style="margin-top:7px">Tamanho do script: 0 KB</div>
+<div class="hint" style="margin-top:9px">O gerador transforma as condições <code>$... = 'texto'</code> encontradas nos controles de imagem em frames. O Script API não desenha a textura por si só: ele envia o texto ActionBar que o seu <code>hud_screen.json</code> usa para tornar a imagem visível.</div>
+</aside>
+</div>
+<script>
+const state={frames:[],jsonObjects:[],tab:'js',selector:'@a',ticks:3,mode:'loop',repeats:1,animName:'hudActionbarAnimation',eventStart:'hud_anim:play',eventStop:'hud_anim:stop',autoStart:false};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'');
+const jsq=s=>JSON.stringify(String(s??''));
+function setStatus(msg,good=true){$('status').textContent=msg;$('status').className='status '+(good?'good':'bad')}
+function unique(arr){return [...new Set(arr)]}
+function extractFrames(obj,source='hud_screen.json'){
+ const found=[];
+ function walk(v,path=''){
+  if(!v||typeof v!=='object')return;
+  if(Array.isArray(v)){v.forEach((x,i)=>walk(x,path+'['+i+']'));return}
+  if(v.type==='image'){
+   const visible=typeof v.visible==='string'?v.visible:'';
+   const m=visible.match(/=\s*['"]([^'"]+)['"]/);
+   const text=m?m[1]:null;
+   if(text){found.push({text,texture:v.texture||'',size:v.size||[],layer:v.layer??0,source,path})}
+  }
+  Object.entries(v).forEach(([k,x])=>walk(x,path?path+'.'+k:k));
+ }
+ walk(obj);
+ return found;
+}
+function addFrames(frames){
+ const map=new Map(state.frames.map(f=>[f.text+"|"+f.texture,f]));
+ frames.forEach(f=>{if(!map.has(f.text+"|"+f.texture))map.set(f.text+"|"+f.texture,f)});
+ state.frames=[...map.values()];
+ render();
+}
+function parseText(text,name='hud_screen.json'){
+ try{const obj=JSON.parse(text);const frames=extractFrames(obj,name);if(!frames.length){setStatus('JSON lido, mas não encontrei controles image com visible baseado em texto ActionBar.',false);return}addFrames(frames);setStatus(`${frames.length} frame(s) encontrados em ${name}.`,true)}catch(e){setStatus('JSON inválido: '+e.message,false)}
+}
+$('fileBtn').onclick=()=>$('fileInput').click();
+$('multiBtn').onclick=()=>$('multiInput').click();
+$('fileInput').onchange=async e=>{const f=e.target.files?.[0];if(f)parseText(await f.text(),f.name);e.target.value=''};
+$('multiInput').onchange=async e=>{const files=[...e.target.files];for(const f of files)parseText(await f.text(),f.name);e.target.value=''};
+$('parseBtn').onclick=()=>parseText($('jsonInput').value||'','JSON colado');
+$('drop').ondragover=e=>{e.preventDefault();$('drop').classList.add('drag')};
+$('drop').ondragleave=()=>$('drop').classList.remove('drag');
+$('drop').ondrop=async e=>{e.preventDefault();$('drop').classList.remove('drag');const files=[...e.dataTransfer.files].filter(f=>/\.json$/i.test(f.name));for(const f of files)parseText(await f.text(),f.name)};
+function renderList(){const box=$('frameList');box.innerHTML='';if(!state.frames.length){box.innerHTML='<div class="centerText">Nenhum frame.</div>';return}state.frames.forEach((f,i)=>{const el=document.createElement('div');el.className='frame';el.innerHTML=`<span class="pill">${String(i+1).padStart(3,'0')}</span><b>${esc(f.text)}</b><small>${esc(f.texture||'sem textura')}</small><button title="Remover">×</button>`;el.querySelector('button').onclick=()=>{state.frames.splice(i,1);render()};box.appendChild(el)})}
+function renderPreview(){const sel=$('previewFrame');sel.innerHTML=state.frames.map((f,i)=>`<option value="${i}">Frame ${i+1}: ${esc(f.text)}</option>`).join('');const i=Number(sel.value||0),f=state.frames[i];const p=$('preview');if(!f){p.innerHTML='<div class="centerText">Importe um JSON para visualizar.</div>';return}p.innerHTML=`<div class="centerText"><div style="font-size:22px;margin-bottom:10px">🖼️</div><b>Frame ${i+1}</b><br><br><span class="pill">ActionBar: ${esc(f.text)}</span><br><br><span class="hint">Texture: ${esc(f.texture||'—')}</span><br><span class="hint">Size: ${esc(JSON.stringify(f.size))}</span><br><span class="hint">Layer: ${esc(f.layer)}</span></div>`}
+function generateJS(){
+ const selector=state.selector.trim()||'@a';const ticks=Math.max(1,Number(state.ticks)||1);const name=state.animName.replace(/[^A-Za-z0-9_$]/g,'_')||'hudActionbarAnimation';const frames=state.frames.map(f=>({text:f.text,ticks}));
+ const mode=state.mode;const repeats=Math.max(1,Number(state.repeats)||1);
+ const lines=[];
+ lines.push("import { system, world } from '@minecraft/server';");
+ lines.push('');
+ lines.push(`// Gerado pelo HUD ActionBar Animation Player`);
+ lines.push(`// @minecraft/server 2.10.0`);
+ lines.push(`// Equivalente: /title ${selector} actionbar <texto-do-frame>`);
+ lines.push('');
+ lines.push(`const SELECTOR = ${jsq(selector)};`);
+ lines.push(`const FRAME_TICKS = ${ticks};`);
+ lines.push(`const FRAMES = ${JSON.stringify(frames,null,2)};`);
+ lines.push(`let animationRun = undefined;`);
+ lines.push('');
+ lines.push(`function sendActionBar(text) {`);
+ lines.push(`  const command = \`title \${SELECTOR} actionbar \${text}\`;`);
+ lines.push(`  try { world.getDimension('overworld').runCommand(command); } catch (error) { console.warn('[HUD Animation] ' + error); }`);
+ lines.push(`}`);
+ lines.push('');
+ lines.push(`export function stop${name[0].toUpperCase()+name.slice(1)}() {`);
+ lines.push(`  if (animationRun !== undefined) { system.clearRun(animationRun); animationRun = undefined; }`);
+ lines.push('}');
+ lines.push('');
+ lines.push(`export function play${name[0].toUpperCase()+name.slice(1)}() {`);
+ lines.push(`  stop${name[0].toUpperCase()+name.slice(1)}();`);
+ lines.push(`  let frame = 0;`);
+ if(mode==='once'){
+  lines.push(`  let elapsed = 0;`);
+  lines.push(`  animationRun = system.runInterval(() => {`);
+  lines.push(`    sendActionBar(FRAMES[frame].text);`);
+  lines.push(`    frame++;`);
+  lines.push(`    if (frame >= FRAMES.length) stop${name[0].toUpperCase()+name.slice(1)}();`);
+  lines.push(`  }, FRAME_TICKS);`);
+ } else if(mode==='count'){
+  lines.push(`  let loops = 0;`);
+  lines.push(`  animationRun = system.runInterval(() => {`);
+  lines.push(`    sendActionBar(FRAMES[frame].text);`);
+  lines.push(`    frame++;`);
+  lines.push(`    if (frame >= FRAMES.length) { frame = 0; loops++; if (loops >= ${repeats}) stop${name[0].toUpperCase()+name.slice(1)}(); }`);
+  lines.push(`  }, FRAME_TICKS);`);
+ } else {
+  lines.push(`  animationRun = system.runInterval(() => {`);
+  lines.push(`    sendActionBar(FRAMES[frame].text);`);
+  lines.push(`    frame = (frame + 1) % FRAMES.length;`);
+  lines.push(`  }, FRAME_TICKS);`);
+ }
+ lines.push('}');
+ lines.push('');
+ lines.push(`system.afterEvents.scriptEventReceive.subscribe((event) => {`);
+ lines.push(`  if (event.id === ${jsq(state.eventStart)}) play${name[0].toUpperCase()+name.slice(1)}();`);
+ lines.push(`  if (event.id === ${jsq(state.eventStop)}) stop${name[0].toUpperCase()+name.slice(1)}();`);
+ lines.push('});');
+ if(state.autoStart)lines.push(`\nplay${name[0].toUpperCase()+name.slice(1)}();`);
+ return lines.join('\n');
+}
+function manifest(){return JSON.stringify({format_version:2,header:{name:'HUD ActionBar Animation Player',description:'Gerado pelo HUD ActionBar Animation Player',uuid:'00000000-0000-4000-8000-000000000001',version:[1,0,0],min_engine_version:[1,21,0]},modules:[{type:'script',language:'javascript',uuid:'00000000-0000-4000-8000-000000000002',version:[1,0,0],entry:'scripts/main.js'}],dependencies:[{module_name:'@minecraft/server',version:'2.10.0'}]},null,2)}
+function commands(){const s=state.eventStart;const stop=state.eventStop;return [`/scriptevent ${s}`,`/scriptevent ${stop}`,'',`/title ${state.selector||'@a'} actionbar ${state.frames[0]?.text||'exemplo'}`].join('\n')}
+function updateCode(){let text=state.tab==='js'?generateJS():state.tab==='manifest'?manifest():commands();$('code').textContent=text;$('commandPreview').textContent=`/title ${state.selector||'@a'} actionbar ${state.frames[0]?.text||'exemplo'}`}
+function render(){renderList();renderPreview();updateCode();updateScriptSize()}
+$('previewFrame').onchange=renderPreview;
+['selector','ticks','mode','repeats','animName','eventStart','eventStop'].forEach(id=>$(id).addEventListener('input',()=>{state[id]=$(id).type==='number'?Number($(id).value):$(id).value;updateCode();updateScriptSize()}));
+$('autoStart').onchange=e=>{state.autoStart=e.target.checked;updateCode();updateScriptSize()};
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{state.tab=b.dataset.tab;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x===b));updateCode()});
+$('copyBtn').onclick=async()=>{try{await navigator.clipboard.writeText(generateJS());$('copyBtn').textContent='✅ Copiado!';setTimeout(()=>$('copyBtn').textContent='📋 Copiar script',1200)}catch{$('code').focus()}};
+function download(name,text,type='text/plain'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function updateScriptSize(){const bytes=new Blob([generateJS()]).size;const kb=(bytes/1024).toFixed(1);$('scriptSize').textContent=`Tamanho do script: ${kb} KB (${bytes.toLocaleString('pt-BR')} bytes)`;}
+$('exportBtn').onclick=()=>download('main.js',generateJS(),'text/javascript');$('downloadScript').onclick=()=>download('main.js',generateJS(),'text/javascript');$('downloadManifest').onclick=()=>download('manifest.json',manifest(),'application/json');
+$('newBtn').onclick=()=>{state.frames=[];state.jsonObjects=[];$('jsonInput').value='';setStatus('Nova animação criada.');render()};
+function setMobilePanel(p){if(innerWidth>800)return;document.querySelectorAll('.panel,.stageWrap').forEach(x=>x.classList.remove('mobileActive'));const target=p==='import'?$('importPanel'):p==='preview'?$('previewPanel'):$('codePanel');target.classList.add('mobileActive');document.querySelectorAll('.mobileTabs button').forEach(b=>b.classList.toggle('active',b.dataset.panel===p))}
+document.querySelectorAll('.mobileTabs button').forEach(b=>b.onclick=()=>setMobilePanel(b.dataset.panel));
+window.addEventListener('resize',()=>{if(innerWidth>800){document.querySelectorAll('.panel,.stageWrap').forEach(x=>x.classList.remove('mobileActive'))}else if(!document.querySelector('.mobileActive'))setMobilePanel('import')});
+// Exemplo inicial compatível com o padrão do hud_screen mostrado pelo usuário.
+addFrames([{text:'test_0001',texture:'textures/ui/411001',size:['100%','100%'],layer:999999,source:'exemplo'}]);
+render();
+</script>
+</body>
+</html>
